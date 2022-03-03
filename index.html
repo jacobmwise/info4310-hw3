@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>INFO4310 HW3 - rcc263, jmw555</title>
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+    </head>
+    <body>
+        <script>
+            const load = async function() {
+                let data = await d3.csv("zillow_pittsburgh.csv");
+                console.log(data);
+            }
+            load();
+
+        </script>
+    </body>
+</html>
