@@ -3,12 +3,58 @@
     <head>
         <title>INFO4310 HW3 - rcc263, jmw555</title>
         <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="https://d3js.org/topojson.v3.min.js"></script>
     </head>
     <body>
+        <div>
+            <svg id="choropleth" width=500 height=500>
+            </svg>
+        </div>
+
         <script>
             const load = async function() {
                 let data = await d3.csv("zillow_pittsburgh.csv");
-                console.log(data);
+                // console.log(data);
+
+                const mapsvg = d3.select("#choropleth");
+                const mapWidth = mapsvg.attr("width");
+                const mapHeight = mapsvg.attr("height");
+                const mapMargin = { top: 0, right: 0, bottom: 0, left: 0};
+                const mapAreaWidth = mapWidth - mapMargin.left - mapMargin.right;
+                const mapAreaHeight = mapHeight - mapMargin.top - mapMargin.bottom;
+                const map = mapsvg.append("g")
+                                .attr("transform","translate("+mapMargin.left+","+mapMargin.top+")");
+
+                const pittsburgh = await d3.json("pittsburgh.json");
+
+                var nhoods = topojson.feature(pittsburgh, pittsburgh.objects.Neighborhoods_);
+                var nhoodsMesh = topojson.mesh(pittsburgh, pittsburgh.objects.Neighborhoods_);
+                var projection = d3.geoMercator().fitSize([mapWidth, mapHeight], nhoods);
+                var path = d3.geoPath().projection(projection);
+
+                map.selectAll("path.nhood").data(nhoods.features)
+                    .join("path")
+                    .attr("class", "nhood")
+                    .attr("fill", "lightgray")
+                    .attr("d", path);
+                map.append("path").datum(nhoodsMesh)
+                    .attr("class","outline")
+                    .attr("fill", "none")
+                    .attr("stroke", "black")
+                    .attr("d", path);
+
+                data.forEach(d => {
+                    d['coords'] = projection([ d['Longitude'], d['Latitude'] ]);
+                });
+
+                map.selectAll("circle")
+                    .data(data).enter()
+                    .append("circle")
+                    .attr("cx", function (d) { return d['coords'][0]; })
+		            .attr("cy", function (d) { return d['coords'][1]; })
+                    .attr("r", 3)
+                    .attr("fill", "black")
+                    .attr("opacity", .5)
             }
             load();
 
