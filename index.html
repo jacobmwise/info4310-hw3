@@ -32,17 +32,56 @@
                 align-items: center;
             }
 
+            #click-info{
+                padding: 5px;
+            }
+
+            .click-content{
+                margin-bottom: 8px;
+                margin-top: 4px;
+            }
+
+            .click-content h4{
+                margin-bottom: 3px;
+                margin-top: 0;
+            }
+
+            .click-content p{
+                margin-left: 5px;
+                margin-top: 0px;
+            }
+
+            .one-line{
+                display: flex;
+            }
+
         </style>
     </head>
     <body>
         <div id="main-container">
+            <!-- <div id="filters-container">
+                
+            </div> -->
             <div>
                 <svg id="choropleth" width=500 height=500>
                 </svg>
             </div>
             <div id="click-info-container">
-                <div id="click-info">
+                <div id="click-info" style="display: none;">
+                    <div class="click-content">
+                        <h4>Address:</h4>
+                        <p id="address"></p>
+                    </div>
 
+                    <div class="click-content">
+                        <h4>Neighborhood:</h4>
+                        <p id="neighborhood"></p>
+                    </div>
+
+                    <div class="click-content one-line">
+                        <h4>Last sold:</h4>
+                        <p id="last-sold"></p>
+                    </div>
                 </div>
 
                 <div id="click-for-more">
@@ -110,6 +149,37 @@
                     .attr("r", 3)
                     .attr("fill", "black")
                     .attr("opacity", .5)
+                    .style("cursor", "pointer")
+                    .on("mouseover", function(e, d){
+                        d3.select(this)
+                            .raise()
+                            .transition().duration(250)
+                            .attr("r", 8)
+                            .attr("opacity", 0.8)
+
+                    })
+
+                    .on("click", function(e,d){
+                        d3.select("#click-info").style("display", "block")
+                        d3.select("#click-for-more").style("display", "none")
+
+                        console.log(d)
+                        
+                        d3.select("#address").text(d['Street Address'])
+                        d3.select("#neighborhood").text(d['Neighborhood'])
+                        if (d['Last Sold Price'] != ""){
+                            d3.select("#last-sold").text("$" + Number(d['Last Sold Price']).toLocaleString() + " on " + d['Last Sold Date'])
+                        } else {
+                            d3.select("#last-sold").text("N/A")
+                        }
+                    })
+
+                    .on("mouseout", function(e,d){
+                        d3.select(this)
+                            .transition().duration(250)
+                            .attr("r", 3)
+                            .attr("opacity", .5)
+                    })
 
                 initZoom();
 
