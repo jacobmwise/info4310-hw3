@@ -4,11 +4,51 @@
         <title>INFO4310 HW3 - rcc263, jmw555</title>
         <script src="https://d3js.org/d3.v7.min.js"></script>
         <script src="https://d3js.org/topojson.v3.min.js"></script>
+        <style>
+            #main-container{
+                display: flex;
+                justify-content: center;
+                margin-top: 42px;
+            }
+
+            #click-info-container{
+                height: 500px;
+                width: 300px;
+                border: 1px solid lightgrey;
+                /* border-top-right-radius: 8px;
+                border-bottom-right-radius: 8px; */
+                margin-left: 12px;
+            }
+
+            #click-for-more{
+                background-color: white;
+                width: 100%;
+                height: 100%;
+                text-align: center;
+                color: grey;
+                font-style: italic;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+        </style>
     </head>
     <body>
-        <div>
-            <svg id="choropleth" width=500 height=500>
-            </svg>
+        <div id="main-container">
+            <div>
+                <svg id="choropleth" width=500 height=500>
+                </svg>
+            </div>
+            <div id="click-info-container">
+                <div id="click-info">
+
+                </div>
+
+                <div id="click-for-more">
+                    <h2>Click on a home to see more info</h2>
+                </div>
+            </div>
         </div>
 
         <script>
@@ -31,6 +71,21 @@
                 var nhoodsMesh = topojson.mesh(pittsburgh, pittsburgh.objects.Neighborhoods_);
                 var projection = d3.geoMercator().fitSize([mapWidth, mapHeight], nhoods);
                 var path = d3.geoPath().projection(projection);
+
+                let zoom = d3.zoom()
+                    .on('zoom', handleZoom)
+                    .scaleExtent([1, 6])
+                    .translateExtent([[0, 0], [mapWidth, mapHeight]]);
+
+                function handleZoom(e) {
+                    d3.select('svg g')
+                        .attr('transform', e.transform);
+                }
+
+                function initZoom() {
+                    d3.select('svg')
+                        .call(zoom);
+                }
 
                 map.selectAll("path.nhood").data(nhoods.features)
                     .join("path")
@@ -55,8 +110,12 @@
                     .attr("r", 3)
                     .attr("fill", "black")
                     .attr("opacity", .5)
+
+                initZoom();
+
             }
             load();
+
 
         </script>
     </body>
