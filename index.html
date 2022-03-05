@@ -158,7 +158,7 @@
                 });
 
                 function plotCircles(filteredData){
-                    console.log(filteredData)
+                    // console.log(filteredData)
 
                     let circles = map.selectAll("circle")
                         .data(filteredData).join('circle')
@@ -210,16 +210,34 @@
                         delete currentFilters[field]
                         if ( Object.keys(currentFilters).length == 0){
                             currentData = data
+                            console.log(currentFilters);
                         } else {
                             currentData = data
 
                             Object.keys(currentFilters).forEach(key => {
+                                console.log(key);
                                 currentData = currentData.filter((d) => { return (d[key] == currentFilters[key])})
                             })
                         }
                     } else {
-                        currentData = currentData.filter((d) => { return (d[field] == value)})
-                        currentFilters[field] = value;
+                        console.log(currentFilters);
+                        delete currentFilters[field];
+                        currentData = data
+                        Object.keys(currentFilters).forEach(key => {
+                            console.log(key);
+                            currentData = currentData.filter((d) => { return (d[key] == currentFilters[key])})
+                        })
+                        console.log(currentFilters);
+                        if (field === "Sale Amount") {
+                            let prices = value.split("-");
+                            prices[0] = parseInt(prices[0].replace(/,/g, ''));
+                            prices[1] = parseInt(prices[1].replace(/,/g, ''));
+                            currentData = currentData.filter((d) => { return (parseInt(d[field]) >= prices[0] && parseInt(d[field]) <= prices[1])});
+                            currentFilters[field] = value;
+                        } else {
+                            currentData = currentData.filter((d) => { return (d[field] == value)})
+                            currentFilters[field] = value;
+                        }
                     }
 
                     plotCircles(currentData)
@@ -261,6 +279,29 @@
                                 .attr("value", function (d) { return d; })
                                 .text(function (d) { return d; });
                 }
+
+                var priceLabel = d3.select("div#filters-container").append("text").text("Price Range");
+                let priceRanges = {"first": "0-100,000", "second": "100,000-200,000", "third": "200,000-300,000", "fourth": "300,000-400,000"}
+                Object.keys(priceRanges).forEach(p => {
+                    var priceSelect = d3.select("div#filters-container")
+                                        .append("div")
+                                        .attr("id", `${p}Div`)
+                                        .append("input")
+                                        .attr("type", "radio")
+                                        .attr("name", "priceRange")
+                                        .attr("id", p)
+                                        .attr("value", priceRanges[p])
+                                        .attr("data-field", "Sale Amount")
+                    var label = d3.select(`div#${p}Div`)
+                                    .append("label")
+                                    .attr("for", p)
+                                    .text(priceRanges[p])
+                });
+                d3.selectAll("input[name='priceRange']").on("change", function(){
+                    filter(d3.select(this).attr("data-field"), d3.select(this).node().value);
+                });
+
+                createDropdown('Neighborhood');
                 createDropdown('Bedrooms');
                 createDropdown('Bathroom');
                 createDropdown('Property Type');
