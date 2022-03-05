@@ -11,6 +11,11 @@
                 margin-top: 42px;
             }
 
+            svg{
+                padding: 0 8px;
+                background-color: lightskyblue;
+            }
+
             #filters-container{
                 height: 500px;
                 width: 300px;
@@ -27,7 +32,7 @@
                 border: 1px solid lightgrey;
                 /* border-top-right-radius: 8px;
                 border-bottom-right-radius: 8px; */
-                margin-left: 12px;
+                /* margin-left: 12px; */
             }
 
             #click-for-more{
@@ -104,6 +109,7 @@
             const load = async function() {
                 let data = await d3.csv("zillow_pittsburgh.csv");
                 // console.log(data);
+                let currentData = data;
 
                 const mapsvg = d3.select("#choropleth");
                 const mapWidth = mapsvg.attr("width");
@@ -139,59 +145,85 @@
                 map.selectAll("path.nhood").data(nhoods.features)
                     .join("path")
                     .attr("class", "nhood")
-                    .attr("fill", "lightgray")
+                    .attr("fill", "beige")
                     .attr("d", path);
                 map.append("path").datum(nhoodsMesh)
                     .attr("class","outline")
                     .attr("fill", "none")
-                    .attr("stroke", "black")
+                    .attr("stroke", "grey")
                     .attr("d", path);
 
                 data.forEach(d => {
                     d['coords'] = projection([ d['Longitude'], d['Latitude'] ]);
                 });
 
-                map.selectAll("circle")
-                    .data(data).enter()
-                    .append("circle")
-                    .attr("cx", function (d) { return d['coords'][0]; })
-		            .attr("cy", function (d) { return d['coords'][1]; })
-                    .attr("r", 3)
-                    .attr("fill", "black")
-                    .attr("opacity", .5)
-                    .style("cursor", "pointer")
-                    .on("mouseover", function(e, d){
-                        d3.select(this)
-                            .raise()
-                            .transition().duration(250)
-                            .attr("r", 8)
-                            .attr("opacity", 0.8)
+                function plotCircles(filteredData){
+                    console.log(filteredData)
 
-                    })
+                    let circles = map.selectAll("circle")
+                        .data(filteredData).join('circle')
+                        // .append("circle")
+                        .attr("cx", function (d) { return d['coords'][0]; })
+                        .attr("cy", function (d) { return d['coords'][1]; })
+                        .attr("r", 3)
+                        .attr("fill", "navy")
+                        .attr("opacity", .5)
+                        .attr("class", "home")
+                        .style("cursor", "pointer")
+                        .on("mouseover", function(e, d){
+                            d3.select(this)
+                                .raise()
+                                .transition().duration(250)
+                                .attr("r", 8)
+                                .attr("opacity", 0.8)
 
-                    .on("click", function(e,d){
-                        d3.select("#click-info").style("display", "block")
-                        d3.select("#click-for-more").style("display", "none")
+                        })
 
-                        console.log(d)
-                        
-                        d3.select("#address").text(d['Street Address'])
-                        d3.select("#neighborhood").text(d['Neighborhood'])
-                        if (d['Last Sold Price'] != ""){
-                            d3.select("#last-sold").text("$" + Number(d['Last Sold Price']).toLocaleString() + " on " + d['Last Sold Date'])
-                        } else {
-                            d3.select("#last-sold").text("N/A")
-                        }
-                    })
+                        .on("click", function(e,d){
+                            d3.select("#click-info").style("display", "block")
+                            d3.select("#click-for-more").style("display", "none")
 
-                    .on("mouseout", function(e,d){
-                        d3.select(this)
-                            .transition().duration(250)
-                            .attr("r", 3)
-                            .attr("opacity", .5)
-                    })
+                            console.log(d)
+                            
+                            d3.select("#address").text(d['Street Address'])
+                            d3.select("#neighborhood").text(d['Neighborhood'])
+                            if (d['Last Sold Price'] != ""){
+                                d3.select("#last-sold").text("$" + Number(d['Last Sold Price']).toLocaleString() + " on " + d['Last Sold Date'])
+                            } else {
+                                d3.select("#last-sold").text("N/A")
+                            }
+                        })
+
+                        .on("mouseout", function(e,d){
+                            d3.select(this)
+                                .transition().duration(250)
+                                .attr("r", 3)
+                                .attr("opacity", .5)
+                        })
+            }
 
                 initZoom();
+
+                let currentFilters = {};
+                function filter(field, value){
+                    if (value=="Any"){
+                        delete currentFilters[field]
+                        if ( Object.keys(currentFilters).length == 0){
+                            currentData = data
+                        } else {
+                            currentData = data
+
+                            Object.keys(currentFilters).forEach(key => {
+                                currentData = currentData.filter((d) => { return (d[key] == currentFilters[key])})
+                            })
+                        }
+                    } else {
+                        currentData = currentData.filter((d) => { return (d[field] == value)})
+                        currentFilters[field] = value;
+                    }
+
+                    plotCircles(currentData)
+                }
 
                 function handleZoom(e) {
                     d3.select('svg g')
@@ -200,6 +232,7 @@
 
                 function createDropdown(field) {
                     let values = [];
+                    values.push("Any")
                     data.forEach(d => {
                         if (!values.includes(d[field])) {
                             values.push(d[field]);
@@ -209,11 +242,17 @@
                     var select = d3.select("div#filters-container")
                                         .append("div")
                                         .append("select")
+                                        .attr("class", "dropdownFilter")
                                         .attr("id", `${field}Select`)
+                                        .attr("data-field", field)
                                         .style("border", "1px solid black")
                                         .style("border-radius", "5px")
                                         // .style("width", "35%")
-                                        .style("margin-top", "10px")
+                                        .style("margin-top", "6px")
+                                        .style("margin-bottom", "12px")
+                                        .on("change", function(e, d){
+                                            filter(d3.select(this).attr("data-field"), d3.select(this).node().value);
+                                        })
 
                     select.selectAll(`${field}Select`)
                             .data(values)
@@ -224,6 +263,8 @@
                 }
                 createDropdown('Bedrooms');
                 createDropdown('Bathroom');
+                createDropdown('Property Type');
+                plotCircles(data);
 
             }
             load();
