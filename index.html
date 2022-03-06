@@ -206,34 +206,30 @@
 
                 let currentFilters = {};
                 function filter(field, value){
-                    if (value=="Any"){
-                        delete currentFilters[field]
-                        if ( Object.keys(currentFilters).length == 0){
-                            currentData = data
-                            console.log(currentFilters);
+                    delete currentFilters[field]
+                    currentData = data
+                    Object.keys(currentFilters).forEach(key => {
+                        console.log(key);
+                        if (key === "Sale Amount") {
+                            if (currentFilters[key] === "All") {
+                                currentData = currentData.filter((d) => { return (parseInt(d[key]) >= 0 && parseInt(d[key]) <= 2000000)});
+                            } else {
+                                let prices = currentFilters[key].split("-");
+                                prices[0] = parseInt(prices[0].replace(/,/g, ''));
+                                prices[1] = parseInt(prices[1].replace(/,/g, ''));
+                                currentData = currentData.filter((d) => { return (parseInt(d[key]) >= prices[0] && parseInt(d[key]) <= prices[1])});
+                            }
                         } else {
-                            currentData = data
-
-                            Object.keys(currentFilters).forEach(key => {
-                                console.log(key);
-                                currentData = currentData.filter((d) => { return (d[key] == currentFilters[key])})
-                            })
+                            currentData = currentData.filter((d) => { return (d[key] === currentFilters[key])})
                         }
-                    } else {
-                        console.log(currentFilters);
-                        delete currentFilters[field];
-                        currentData = data
-                        Object.keys(currentFilters).forEach(key => {
-                            console.log(key);
-                            currentData = currentData.filter((d) => { return (d[key] == currentFilters[key])})
-                        })
-                        console.log(currentFilters);
+                    })
+                    if (value!=="Any" && value!=="All") {
                         if (field === "Sale Amount") {
-                            let prices = value.split("-");
-                            prices[0] = parseInt(prices[0].replace(/,/g, ''));
-                            prices[1] = parseInt(prices[1].replace(/,/g, ''));
-                            currentData = currentData.filter((d) => { return (parseInt(d[field]) >= prices[0] && parseInt(d[field]) <= prices[1])});
-                            currentFilters[field] = value;
+                                let prices = value.split("-");
+                                prices[0] = parseInt(prices[0].replace(/,/g, ''));
+                                prices[1] = parseInt(prices[1].replace(/,/g, ''));
+                                currentData = currentData.filter((d) => { return (parseInt(d[field]) >= prices[0] && parseInt(d[field]) <= prices[1])});
+                                currentFilters[field] = value;
                         } else {
                             currentData = currentData.filter((d) => { return (d[field] == value)})
                             currentFilters[field] = value;
@@ -250,12 +246,14 @@
 
                 function createDropdown(field) {
                     let values = [];
-                    values.push("Any")
+                    
                     data.forEach(d => {
-                        if (!values.includes(d[field])) {
+                        if (!values.includes(d[field]) && d[field] !== "") {
                             values.push(d[field]);
                         }
                     })
+                    values.sort();
+                    values.unshift("Any");
                     var label = d3.select("div#filters-container").append("text").text(field);
                     var select = d3.select("div#filters-container")
                                         .append("div")
@@ -280,14 +278,22 @@
                                 .text(function (d) { return d; });
                 }
 
-                var priceLabel = d3.select("div#filters-container").append("text").text("Price Range");
-                let priceRanges = {"first": "0-100,000", "second": "100,000-200,000", "third": "200,000-300,000", "fourth": "300,000-400,000"}
+                var priceDiv = d3.select("div#filters-container")
+                                .append("div")
+                                .attr("id", "priceDiv")
+                                .style("display", "flex")
+                                .style("flex-direction", "column")
+                                .style("justify-content", "space-between")
+                var priceLabel = d3.select("div#priceDiv").append("text").text("Price Range");
+                let priceRanges = {"all": "All", "first": "0-100,000", "second": "100,001-200,000", "third": "200,001-300,000", "fourth": "300,001-400,000", "fifth": "500,001-1,000,000"}
                 Object.keys(priceRanges).forEach(p => {
-                    var priceSelect = d3.select("div#filters-container")
+                    var priceSelect = d3.select("div#priceDiv")
                                         .append("div")
                                         .attr("id", `${p}Div`)
                                         .append("input")
                                         .attr("type", "radio")
+                                        .style("visibility", "hidden")
+                                        .style("margin", "10px")
                                         .attr("name", "priceRange")
                                         .attr("id", p)
                                         .attr("value", priceRanges[p])
@@ -296,10 +302,26 @@
                                     .append("label")
                                     .attr("for", p)
                                     .text(priceRanges[p])
+                                    .style("cursor", "pointer")
+                                    .style("background", "lightgray")
+                                    .style("border", "1px solid black")
+                                    .style("border-radius", "5px")
+                                    .style("display", "inline-block")
+                                    .style("width", "150px")
+                                    .style("text-align", "center")
+                                    
                 });
                 d3.selectAll("input[name='priceRange']").on("change", function(){
                     filter(d3.select(this).attr("data-field"), d3.select(this).node().value);
                 });
+
+                const priceExtent = d3.extent(data, d => parseInt(d['Sale Amount']));
+                console.log(priceExtent);
+
+                // <span class="rangeValues"></span>
+                // <input value="500" min="500" max="50000" step="500" type="range">
+                // <input value="50000" min="500" max="50000" step="500" type="range">
+
 
                 createDropdown('Neighborhood');
                 createDropdown('Bedrooms');
