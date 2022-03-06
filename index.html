@@ -293,23 +293,36 @@
                                 prices[1] = parseInt(prices[1].replace(/,/g, ''));
                                 currentData = currentData.filter((d) => { return (parseInt(d[key]) >= prices[0] && parseInt(d[key]) <= prices[1])});
                             }
+                        } else if (key === "Finished Size (Sq.Ft.)") {
+                            if (currentFilters[key] === "All") {
+                                currentData = currentData.filter((d) => { return (parseInt(d[key]) >= 0 && parseInt(d[key]) <= 6000)});
+                            } else {
+                                let sizes = currentFilters[key].split("-");
+                                // prices[0] = parseInt(prices[0].replace(/,/g, ''));
+                                // prices[1] = parseInt(prices[1].replace(/,/g, ''));
+                                currentData = currentData.filter((d) => { return (parseInt(d[key]) >= parseInt(sizes[0]) && parseInt(d[key]) <= parseInt(sizes[1]))});
+                            }
                         } else {
                             currentData = currentData.filter((d) => { return (d[key] === currentFilters[key])})
                         }
                     })
                     if (value!=="Any" && value!=="All") {
                         if (field === "Sale Amount") {
-                                let prices = value.split("-");
-                                prices[0] = parseInt(prices[0].replace(/,/g, ''));
-                                prices[1] = parseInt(prices[1].replace(/,/g, ''));
-                                currentData = currentData.filter((d) => { return (parseInt(d[field]) >= prices[0] && parseInt(d[field]) <= prices[1])});
-                                currentFilters[field] = value;
+                            let prices = value.split("-");
+                            prices[0] = parseInt(prices[0].replace(/,/g, ''));
+                            prices[1] = parseInt(prices[1].replace(/,/g, ''));
+                            currentData = currentData.filter((d) => { return (parseInt(d[field]) >= prices[0] && parseInt(d[field]) <= prices[1])});
+                            currentFilters[field] = value;
+                        } else if (field === "Finished Size (Sq.Ft.)") {
+                            let sizes = value.split("-");
+                            currentData = currentData.filter((d) => { return (parseInt(d[field]) >= parseInt(sizes[0]) && parseInt(d[field]) <= parseInt(sizes[1]))});
+                            currentFilters[field] = value;
                         } else {
                             currentData = currentData.filter((d) => { return (d[field] == value)})
                             currentFilters[field] = value;
                         }
                     }
-
+                    console.log(currentData);
                     plotCircles(currentData)
                 }
 
@@ -352,30 +365,31 @@
                                 .text(function (d) { return d; });
                 }
 
-                var priceDiv = d3.select("div#filters-container")
+                function createButtons(name, field, ranges) {
+                    var nameSelect = d3.select("div#filters-container")
                                 .append("div")
-                                .attr("id", "priceDiv")
+                                .attr("id", `${name}Div`)
                                 .style("display", "flex")
                                 .style("flex-direction", "column")
                                 .style("justify-content", "space-between")
-                var priceLabel = d3.select("div#priceDiv").append("text").text("Price Range");
-                let priceRanges = {"all": "All", "first": "0-100,000", "second": "100,001-200,000", "third": "200,001-300,000", "fourth": "300,001-400,000", "fifth": "500,001-1,000,000"}
-                Object.keys(priceRanges).forEach(p => {
-                    var priceSelect = d3.select("div#priceDiv")
+                    var label = d3.select(`div#${name}Div`).append("text").text(field);
+                    var buttonRanges = ranges;
+                    Object.keys(buttonRanges).forEach(b => {
+                        var select = d3.select(`div#${name}Div`)
                                         .append("div")
-                                        .attr("id", `${p}Div`)
+                                        .attr("id", `${name}${b}Div`)
                                         .append("input")
                                         .attr("type", "radio")
                                         .style("visibility", "hidden")
                                         .style("margin", "10px")
-                                        .attr("name", "priceRange")
-                                        .attr("id", p)
-                                        .attr("value", priceRanges[p])
-                                        .attr("data-field", "Sale Amount")
-                    var label = d3.select(`div#${p}Div`)
+                                        .attr("name", `${name}Range`)
+                                        .attr("id", b)
+                                        .attr("value", buttonRanges[b])
+                                        .attr("data-field", field)
+                        var label = d3.select(`div#${name}${b}Div`)
                                     .append("label")
-                                    .attr("for", p)
-                                    .text(priceRanges[p])
+                                    .attr("for", b)
+                                    .text(buttonRanges[b])
                                     .style("cursor", "pointer")
                                     .style("background", "lightgray")
                                     .style("border", "1px solid black")
@@ -383,19 +397,15 @@
                                     .style("display", "inline-block")
                                     .style("width", "150px")
                                     .style("text-align", "center")
-                                    
-                });
-                d3.selectAll("input[name='priceRange']").on("change", function(){
-                    filter(d3.select(this).attr("data-field"), d3.select(this).node().value);
-                });
-
-                const priceExtent = d3.extent(data, d => parseInt(d['Sale Amount']));
-                console.log(priceExtent);
-
-                // <span class="rangeValues"></span>
-                // <input value="500" min="500" max="50000" step="500" type="range">
-                // <input value="50000" min="500" max="50000" step="500" type="range">
-
+                    });
+                    d3.selectAll(`input[name='${name}Range']`).on("change", function(){
+                        filter(d3.select(this).attr("data-field"), d3.select(this).node().value);
+                    });
+                }
+                let priceRanges = {"all": "All", "first": "0-100,000", "second": "100,001-200,000", "third": "200,001-300,000", "fourth": "300,001-400,000", "fifth": "500,001-1,000,000", "sixth": "1,000,001-2,000,000"}
+                createButtons("price", "Sale Amount", priceRanges);
+                let sizeRanges = {"all": "All", "first": "500-2000", "second": "2001-4000", "third": "4001-6000"}
+                createButtons("size", "Finished Size (Sq.Ft.)", sizeRanges);
 
                 createDropdown('Neighborhood');
                 createDropdown('Bedrooms');
