@@ -97,6 +97,14 @@
                         <h4>Last sold:</h4>
                         <p id="last-sold"></p>
                     </div>
+
+                    <div class="click-content">
+                        <h4>Price Compare:</h4>
+                        <p id="priceCompare"></p>
+                    </div>
+
+                    <!-- <svg id="graph" height=400 width=700>
+                    </svg> -->
                 </div>
 
                 <div id="click-for-more">
@@ -192,6 +200,72 @@
                             } else {
                                 d3.select("#last-sold").text("N/A")
                             }
+
+                            
+
+                            // const bar = d3.select("svg#graph");
+                            // const width = bar.attr("width");
+                            // const height = bar.attr("height");
+                            // const margin = {top: 15, right: 15, bottom: 150, left: 50};
+                            // const chartWidth = width - margin.left - margin.right;
+                            // const chartHeight = height - margin.top - margin.bottom;
+
+                            let similarData = data.filter((x) => { return (x['Bedrooms'] === d['Bedrooms'] && x['Bathroom'] === d['Bathroom'])})
+                            // let bins = {};
+                            // for (let i=0;i<=2000000;i=i+200000) {
+                            //     bins[i] = 0;
+                            // }
+                            // similarData.forEach(d => {
+                            //     Object.keys(bins).forEach(b => {
+                            //         if (b > d['Sale Amount']) {
+                            //             bins[b-10000]++
+                            //         }
+                            //     });
+                            // });
+                            // let countData = [];
+                            // Object.keys(bins).forEach(b => {
+                            //     if (!bins[b]) {
+                            //         bins[b] = 0;
+                            //     }
+                            //     countData.push({"price": b, "count": bins[b]});
+                            // });
+
+                            // const countExtent = d3.extent(countData, d => d['count']);
+                            // console.log(countExtent)
+                            // const countScale = d3.scaleLinear().domain(countExtent).range([chartHeight, 0]);
+                            // const binScale = d3.scaleBand().domain(Object.keys(bins)).range([0, chartWidth])
+                            
+                            // let leftAxis = d3.axisLeft(countScale);
+                            // bar.append("g")
+                            //         .attr("class", "y axis")
+                            //         .attr("transform",`translate(${margin.left},${margin.top})`)
+                            //         .call(leftAxis);
+                            // let bottomAxis = d3.axisBottom(binScale);
+                            // bar.append("g")
+                            //     .attr("class", "x axis")
+                            //     .attr("transform", `translate(${margin.left},${chartHeight + margin.top})`)
+                            //     .call(bottomAxis)
+                            //     .selectAll("text")
+                            //     .attr("y", 0)
+                            //     .attr("x", 9)
+                            //     .attr("dy", ".35em")
+                            //     .attr("transform", "rotate(60)")
+                            //     .style("text-anchor", "start");
+
+                            // bar.selectAll('rect.bar').data(countData)
+                            //     .join('rect').attr("class", "bar")
+                            //     .attr("id", d => d["price"])
+                            //     .attr("fill", "lightblue")
+                            //     .attr("x", d => binScale(d["price"]))
+                            //     .attr("y", d => countScale(d["count"]))
+                            //     .attr("height", d => (countScale(1) - countScale(d["count"])))
+                            //     .attr("width", 5)
+                            //     .attr("opacity", 0.7)
+                            //     .attr("transform","translate("+margin.left+","+margin.top+")")
+
+                            let avgPrice = d3.mean(similarData, d => parseInt(d['Sale Amount']));
+                            avgPrice = Math.round(avgPrice)
+                            d3.select("#priceCompare").text("Sale Amount: " + d['Sale Amount'] + " Avg. Price: " + avgPrice)  
                         })
 
                         .on("mouseout", function(e,d){
