@@ -83,26 +83,6 @@
             </div>
             <div id="click-info-container">
                 <div id="click-info" style="display: none;">
-                    <div class="click-content">
-                        <h4>Address:</h4>
-                        <p id="address"></p>
-                    </div>
-
-                    <div class="click-content">
-                        <h4>Neighborhood:</h4>
-                        <p id="neighborhood"></p>
-                    </div>
-
-                    <div class="click-content one-line">
-                        <h4>Last sold:</h4>
-                        <p id="last-sold"></p>
-                    </div>
-
-                    <div class="click-content">
-                        <h4>Price Compare:</h4>
-                        <p id="priceCompare"></p>
-                    </div>
-
                     <!-- <svg id="graph" height=400 width=700>
                     </svg> -->
                 </div>
@@ -192,17 +172,19 @@
                             d3.select("#click-for-more").style("display", "none")
 
                             console.log(d)
+                            d3.select("#click-info").html("");
                             
-                            d3.select("#address").text(d['Street Address'])
-                            d3.select("#neighborhood").text(d['Neighborhood'])
+                            d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Address").append("p").text(d['Street Address']).style("font-weight", "normal")
+                            d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Neighborhood").append("p").text(d['Neighborhood']).style("font-weight", "normal")
+                            d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Size (Sq.Ft.)").append("p").text(d['Finished Size (Sq.Ft.)']).style("font-weight", "normal")
+                            d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Beds/Baths").append("p").text(d['Bedrooms'] + ', ' + d['Bathroom']).style("font-weight", "normal")
+                        
                             if (d['Last Sold Price'] != ""){
-                                d3.select("#last-sold").text("$" + Number(d['Last Sold Price']).toLocaleString() + " on " + d['Last Sold Date'])
+                                d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Last Sold").append("p").text("$" + Number(d['Last Sold Price']).toLocaleString() + " on " + d['Last Sold Date']).style("font-weight", "normal")
                             } else {
-                                d3.select("#last-sold").text("N/A")
+                                d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Last Sold").append("p").text("N/A").style("font-weight", "normal")
                             }
-
                             
-
                             // const bar = d3.select("svg#graph");
                             // const width = bar.attr("width");
                             // const height = bar.attr("height");
