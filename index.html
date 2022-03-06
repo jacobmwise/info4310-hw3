@@ -11,7 +11,7 @@
                 margin-top: 42px;
             }
 
-            svg{
+            #choropleth{
                 padding: 0 8px;
                 background-color: lightskyblue;
             }
@@ -64,10 +64,16 @@
             .click-content p{
                 margin-left: 5px;
                 margin-top: 0px;
+                margin-bottom: 0px;
             }
 
             .one-line{
                 display: flex;
+            }
+
+            #lot-diagram{
+                display: block;
+                margin: auto;
             }
 
         </style>
@@ -88,6 +94,7 @@
                 <div id="click-info" style="display: none;">
                     <!-- <svg id="graph" height=400 width=700>
                     </svg> -->
+                    <svg id="lot-diagram" width="200" height="200"></svg>
                 </div>
 
                 <div id="click-for-more">
@@ -112,6 +119,10 @@
                                 .attr("transform","translate("+mapMargin.left+","+mapMargin.top+")");
 
                 const pittsburgh = await d3.json("pittsburgh.json");
+
+                const sizesvg = d3.select("#lot-diagram")
+                const sizeWidth = mapsvg.attr("width");
+                const sizeHeight = mapsvg.attr("height");
 
                 var nhoods = topojson.feature(pittsburgh, pittsburgh.objects.Neighborhoods_);
                 var nhoodsMesh = topojson.mesh(pittsburgh, pittsburgh.objects.Neighborhoods_);
@@ -146,6 +157,9 @@
 
                 data.forEach(d => {
                     d['coords'] = projection([ d['Longitude'], d['Latitude'] ]);
+                    d['Lot Size (Sq.Ft.)'] = Number(d['Lot Size (Sq.Ft.)'])
+                    d['Finished Size (Sq.Ft.)'] = Number(d['Finished Size (Sq.Ft.)'])
+
                 });
 
                 let mouseoverDiv = map.append("div").attr("id", "mouseover")
@@ -155,6 +169,54 @@
 
                 function getNumericPixelVal(str){
                     return Number(String(str).substr(0, String(str).length-2))
+                }
+                
+                const lotExtent = d3.extent(data, d => d['Lot Size (Sq.Ft.)']);
+                const finishedExtent = d3.extent(data, d => d['Finished Size (Sq.Ft.)']);
+
+                const lotScale = d3.scaleLinear().domain(lotExtent).range([0, sizeWidth]);
+                const finishedScale = d3.scaleLinear().domain(finishedExtent).range([0, sizeWidth]);
+
+                let lotRect = sizesvg.append('rect')
+                    .attr("id", "lotRect")
+                    .attr("fill", "darkgreen")
+                    .attr("rx", "3")
+
+                let finishedRect = sizesvg.append('rect')
+                    .attr("id", "finishedRect")
+                    .attr("fill", "brown")
+                    .attr("rx", "1")
+
+                let finishedText = sizesvg.append('text')
+                    .attr("id", "finishedText")
+                    // .attr("width", 200)
+                    .style("color", "black")
+                    .attr('text-anchor', "middle")
+                    .attr("x", 100)
+                    .attr("y", 20)
+                    .style("text-shadow","0 0 10px beige")
+
+                let yardText = sizesvg.append('text')
+                    .attr("id", "yardText")
+                    .style("color", "black")
+                    .attr('text-anchor', "middle")
+                    .attr("x", 100)
+                    .attr("y", 200-13)
+                    .style("text-shadow","0 0 8px beige")
+
+
+
+                function updateSizePlot(lotSize, finishedSize){
+                    lotRect.attr("height", lotScale(lotSize))
+                        .attr("width", lotScale(lotSize))
+                        .attr("transform", `translate(${(100)-lotScale(lotSize)/2},${(100)-lotScale(lotSize)/2})`)
+
+                    finishedRect.attr("height", lotScale(finishedSize)).attr("width", lotScale(finishedSize))
+                    .attr("transform", `translate(${(100)-(finishedRect.attr("height")/2.0)},${(100)-(finishedRect.attr("height")/2.0)})`).raise()
+
+                    finishedText.text(`Floor space: ${finishedSize.toLocaleString()} sq. ft.`)
+                    yardText.text(`Yard size: ${Math.max(0,(lotSize-finishedSize)).toLocaleString()} sq. ft.`)
+
                 }
 
                 function plotCircles(filteredData){
@@ -178,8 +240,8 @@
                                 .attr("opacity", 0.8)
                             // d3.select("#label").text(d['Street Address']);
                             // d3.select("#label2").text(d['Sale Amount']);
-                            let tooltipWidth = 220;
-                            let tooltipHeight = 80;
+                            let tooltipWidth = 250;
+                            let tooltipHeight = 60;
                             let tooltip = mapsvg.append("g")
                                 .attr("class","tooltip")
                                 .attr("opacity", .8)
@@ -187,8 +249,8 @@
                             tooltip.append("rect")
                                 .attr("fill", "white")
                                 .attr("opacity", 1)
-                                .attr("x", -tooltipWidth / 2.0 + 110)
-                                .attr("y", 390)
+                                .attr("x", -tooltipWidth / 2.0 + 130)
+                                .attr("y", 420)
                                 .attr("rx", "10")
                                 .attr("ry", "10")
                                 .attr("width",tooltipWidth)
@@ -197,18 +259,18 @@
                                 .attr("stroke-width", "1px")
                             let txt = tooltip.append("text")
                                 .text(d['Street Address'])
-                                .attr("fill", "gray")
+                                .attr("fill", "black")
                                 .attr("text-anchor","left")
                                 .attr("alignment-baseline","hanging")
-                                .attr("x", (-tooltipWidth/2) + 130)
-                                .attr("y", 390 + 20);
+                                .attr("x", (-tooltipWidth/2) + 140)
+                                .attr("y", 390 + 45);
                             let txt2 = tooltip.append("text")
-                                .text("$" + d['Sale Amount'])
+                                .text("$" + Number(d['Sale Amount']).toLocaleString())
                                 .attr("fill", "gray")
                                 .attr("text-anchor","left")
                                 .attr("alignment-baseline","hanging")
-                                .attr("x", (-tooltipWidth/2) + 130)
-                                .attr("y", 390 + 50);
+                                .attr("x", (-tooltipWidth/2) + 140)
+                                .attr("y", 390 + 65);
                             let xPos = (d['coords'][0]+tooltipWidth+50);
                             let yPos = (d['coords'][1]+tooltipHeight+5);
                             // yPos = String(Math.min((getNumericPixelVal(mapHeight)-tooltipHeight-5), getNumericPixelVal(yPos))) + "px"
@@ -230,18 +292,21 @@
                             d3.select("#click-for-more").style("display", "none")
 
                             console.log(d)
-                            d3.select("#click-info").html("");
+                            d3.selectAll(".click-content").remove()
                             
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Address").append("p").text(d['Street Address']).style("font-weight", "normal")
+                            d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Listing Price").append("p").text("$" + Number(d['Sale Amount']).toLocaleString()).style("font-weight", "normal")
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Neighborhood").append("p").text(d['Neighborhood']).style("font-weight", "normal")
-                            d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Size (Sq.Ft.)").append("p").text(d['Finished Size (Sq.Ft.)']).style("font-weight", "normal")
+                            d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Year Built").append("p").text(d['Year Built']).style("font-weight", "normal")
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Beds/Baths").append("p").text(d['Bedrooms'] + ', ' + d['Bathroom']).style("font-weight", "normal")
                         
                             if (d['Last Sold Price'] != ""){
                                 d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Last Sold").append("p").text("$" + Number(d['Last Sold Price']).toLocaleString() + " on " + d['Last Sold Date']).style("font-weight", "normal")
                             } else {
                                 d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Last Sold").append("p").text("N/A").style("font-weight", "normal")
-                            }                             
+                            }
+                            
+                            updateSizePlot(d['Lot Size (Sq.Ft.)'], d['Finished Size (Sq.Ft.)'])
                         })
 
                         .on("mouseout", function(e,d){
