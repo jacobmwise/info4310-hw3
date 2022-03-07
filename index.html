@@ -4,7 +4,12 @@
         <title>INFO4310 HW3 - rcc263, jmw555</title>
         <script src="https://d3js.org/d3.v7.min.js"></script>
         <script src="https://d3js.org/topojson.v3.min.js"></script>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <style>
+            body{
+                font-family: "Times New Roman", Times, serif;
+            }
+
             #main-container{
                 display: flex;
                 justify-content: center;
@@ -295,7 +300,14 @@
                             d3.selectAll(".click-content").remove()
                             
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Address").append("p").text(d['Street Address']).style("font-weight", "normal")
-                            d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Listing Price").append("p").text("$" + Number(d['Sale Amount']).toLocaleString()).style("font-weight", "normal")
+                            if (d['Sale Amt 1-Week Change'].substring(0,1) === "-") {
+                                var change =  `<p>$${Number(d['Sale Amount']).toLocaleString()}` + `<span style="color: red;">&#8595;${d['Sale Amt 1-Week Change'].substring(1)}</span><p>`
+                                // var color = "red"
+                            } else {
+                                var change = `<p>$${Number(d['Sale Amount']).toLocaleString()}` + `<span style="color: green;">&#8593;${d['Sale Amt 1-Week Change']}</span><p>`
+                                // var color = "green"
+                            }
+                            d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Listing Price").append("html").html(change).style("font-weight", "normal")
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Neighborhood").append("p").text(d['Neighborhood']).style("font-weight", "normal")
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Year Built").append("p").text(d['Year Built']).style("font-weight", "normal")
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Beds/Baths").append("p").text(d['Bedrooms'] + ', ' + d['Bathroom']).style("font-weight", "normal")
