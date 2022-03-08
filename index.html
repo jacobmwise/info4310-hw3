@@ -562,6 +562,8 @@
                     nameSelect.append("hr")
 
                 }
+                let currMin = 38464
+                let currMax = 1710414
 
                 function createSliders(name, field, thisExtent){
                     var nameSelect = d3.select("div#filters-container")
@@ -591,8 +593,16 @@
 
                     minSlider
                         .on("input", function(e, d){
-                            minValue.text("$" + Number(this.value).toLocaleString())
-                            filter("minPrice", Number(this.value))
+                            if (Number(this.value) >= currMax) {
+                                currMin = currMax
+                                minValue.text("$" + Number(currMin).toLocaleString())
+                                this.value = currMax
+                                filter("minPrice", Number(currMin))
+                            } else {
+                                minValue.text("$" + Number(this.value).toLocaleString())
+                                currMin = Number(this.value)
+                                filter("minPrice", Number(this.value))
+                            }
                         })
 
                     var minValue = innerMinSelect.append("p").style("width", "25%").text("$" + thisExtent[0].toLocaleString())
@@ -616,8 +626,16 @@
 
                     maxSlider
                         .on("input", function(e, d){
-                            maxValue.text("$" + Number(this.value).toLocaleString())
-                            filter("maxPrice", Number(this.value))
+                            if (Number(this.value) <= currMin) {
+                                currMax = currMin
+                                maxValue.text("$" + Number(currMax).toLocaleString())
+                                this.value = currMin
+                                filter("maxPrice", Number(currMax))
+                            } else {
+                                maxValue.text("$" + Number(this.value).toLocaleString())
+                                currMax = Number(this.value)
+                                filter("maxPrice", Number(this.value))
+                            }
                         })
 
                     var maxValue = innerMaxSelect.append("p").style("width", "25%").text("$" + thisExtent[1].toLocaleString())
