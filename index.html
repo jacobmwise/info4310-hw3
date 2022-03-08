@@ -10,10 +10,34 @@
                 font-family: 'Trebuchet MS', Arial, sans-serif;
             }
 
+            html{
+                background-color: navy;
+            }
+
+            #header{
+                color: white;
+                text-align: center;
+            }
+
+            #header h1{
+                margin-top: 8px;
+                margin-bottom: 4px;
+                font-size: 42px;
+            }
+
+            #header h2{
+                margin-top: 0;
+                color: lightgrey;
+                font-size: 18px;
+            }
+
             #main-container{
                 display: flex;
                 justify-content: center;
-                margin-top: 42px;
+                margin-top: 24px;
+                height: 500px;
+                overflow-y: hidden;
+                border-radius: 8px;
             }
 
             #choropleth{
@@ -25,19 +49,21 @@
                 height: 480px;
                 width: 300px;
                 border: 1px solid lightgrey;
-                /* border-top-right-radius: 8px;
-                border-bottom-right-radius: 8px; */
+                border-top-left-radius: 8px;
+                border-bottom-left-radius: 8px;
                 margin-left: 12px;
                 padding: 10px;
+                background-color: white;
             }
 
             #click-info-container{
                 height: 500px;
                 width: 300px;
                 border: 1px solid lightgrey;
-                /* border-top-right-radius: 8px;
-                border-bottom-right-radius: 8px; */
+                border-top-right-radius: 8px;
+                border-bottom-right-radius: 8px;
                 /* margin-left: 12px; */
+                background-color: white;
             }
 
             #click-for-more{
@@ -50,6 +76,8 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                border-top-right-radius: 8px;
+                border-bottom-right-radius: 8px;
             }
 
             #click-info{
@@ -115,9 +143,27 @@
                 margin-bottom: 8px;
             }
 
+            hr{
+                background-color: lightgrey;
+                width: 85%;
+                border-style: solid;
+                border-color: lightgrey;
+                border-width: 0.5px;
+                border-radius: 10px;
+            }
+
+            select{
+                font-size: 15px;
+            }
+
         </style>
     </head>
     <body>
+        <div id="header">
+            <h1>Zillow Pittsburgh</h1>
+            <h2>Ronin Chasan (rcc263), Jacob Wise (jmw555)</h2>
+            <p style="max-width: 75%; margin: auto;">This tool displays homes available for purchase in the Pittsburgh area via Zillow. <strong>Filter</strong> by criteria using the panel on the left, double-click or scroll to <strong>zoom</strong> and drag to move around the map, and <strong>hover</strong> over and <strong>click</strong> on individual homes for more details.</p>
+        </div>
         <div id="main-container">
             <div id="filters-container">
                 
@@ -193,7 +239,7 @@
                     .attr("stroke", "grey")
                     .attr("d", path);
 
-                mapsvg.append("text").text(`${currentData.length} homes found`).attr("x", 0).attr("y", 20).attr("id", "count")
+                mapsvg.append("text").text(`${currentData.length} homes found`).attr("x", 0).attr("y", 20).attr("id", "count").style("text-shadow","0 0 8px beige")
 
                 
 
@@ -288,18 +334,18 @@
                             let tooltipHeight = 60;
                             let tooltip = mapsvg.append("g")
                                 .attr("class","tooltip")
-                                .attr("opacity", .8)
+                                .attr("opacity", .4)
                                 
                             tooltip.append("rect")
                                 .attr("fill", "white")
                                 .attr("opacity", 1)
                                 .attr("x", -tooltipWidth / 2.0 + 130)
                                 .attr("y", 420)
-                                .attr("rx", "10")
-                                .attr("ry", "10")
+                                .attr("rx", "5")
+                                .attr("ry", "5")
                                 .attr("width",tooltipWidth)
                                 .attr("height",tooltipHeight)
-                                .attr("stroke", "black")
+                                .attr("stroke", "lightgrey")
                                 .attr("stroke-width", "1px")
                             let txt = tooltip.append("text")
                                 .text(d['Street Address'])
@@ -309,7 +355,7 @@
                                 .attr("x", (-tooltipWidth/2) + 140)
                                 .attr("y", 390 + 45);
                             let txt2 = tooltip.append("text")
-                                .text("$" + Number(d['Sale Amount']).toLocaleString())
+                                .text("$" + Number(d['Sale Amount']).toLocaleString() + " – " + `${d['Bedrooms']} bd./${d['Bathroom']} ba.`)
                                 .attr("fill", "gray")
                                 .attr("text-anchor","left")
                                 .attr("alignment-baseline","hanging")
@@ -327,7 +373,7 @@
                             tooltip.style("transform",`translate(${yPos}, ${xPos}) rotate(90deg)`);
                             d3.selectAll(".tooltip")
                                 .transition().duration(500)
-                                .attr("opacity", 1)
+                                .attr("opacity", 0.9)
 
                         })
 
@@ -337,7 +383,8 @@
 
                             console.log(d)
                             d3.selectAll(".click-content").remove()
-                            
+                            d3.selectAll(".click-content-hr").remove()
+                            d3.select("#click-info").append("hr").attr("class", "click-content-hr")
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Address").append("p").text(d['Street Address']).style("font-weight", "normal")
                             if (d['Sale Amt 1-Week Change'].substring(0,1) === "-") {
                                 var change =  `<p>$${Number(d['Sale Amount']).toLocaleString()}` + `<span style="color: red; margin-left: 4px;">&#8595;$${Number(d['Sale Amt 1-Week Change'].substring(1)).toLocaleString()} this wk.</span><p>`
@@ -346,7 +393,7 @@
                                 var change = `<p>$${Number(d['Sale Amount']).toLocaleString()}` + `<span style="color: green; margin-left: 4px;">&#8593;$${Number(d['Sale Amt 1-Week Change']).toLocaleString()} this wk.</span><p>`
                                 // var color = "green"
                             }
-                            d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Listing Price").append("html").html(change).style("font-weight", "normal")
+                            d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Listing Price").append("p").html(change).style("font-weight", "normal")
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Neighborhood").append("p").text(d['Neighborhood']).style("font-weight", "normal")
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Year Built").append("p").text(d['Year Built']).style("font-weight", "normal")
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Beds/Baths").append("p").text(d['Bedrooms'] + ', ' + d['Bathroom']).style("font-weight", "normal")
@@ -378,7 +425,7 @@
                     if ((value!=="Any") && (value!=="All")) {
                         currentFilters[field] = value;
                     }
-                    
+
                     currentData = data
                     Object.keys(currentFilters).forEach(key => {
                         if (key === "minPrice") {
@@ -511,6 +558,9 @@
                     d3.selectAll(`input[name='${name}Range']`).on("change", function(){
                         filter(d3.select(this).attr("data-field"), d3.select(this).node().value);
                     });
+
+                    nameSelect.append("hr")
+
                 }
 
                 function createSliders(name, field, thisExtent){
@@ -572,6 +622,7 @@
 
                     var maxValue = innerMaxSelect.append("p").style("width", "25%").text("$" + thisExtent[1].toLocaleString())
 
+                    nameSelect.append("hr")
                 }
 
                 createSliders("price", "Sale Amount", saleAmountExtent)
