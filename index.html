@@ -442,9 +442,9 @@
                                 .append("div")
                                 .attr("id", `${name}Div`)
                                 .style("display", "flex")
-                                .style("flex-direction", "column")
-                                .style("justify-content", "space-between")
-                    var label = d3.select(`div#${name}Div`).append("text").text(field);
+                                .style("flex-direction", "row")
+                                .style("flex-wrap", "wrap")
+                    var label = d3.select(`div#${name}Div`).append("text").text(field).style("width", "100%");
                     var buttonRanges = ranges;
                     Object.keys(buttonRanges).forEach(b => {
                         var select = d3.select(`div#${name}Div`)
@@ -453,22 +453,41 @@
                                         .append("input")
                                         .attr("type", "radio")
                                         .style("visibility", "hidden")
-                                        .style("margin", "10px")
+                                        .style("margin", "5px")
                                         .attr("name", `${name}Range`)
                                         .attr("id", b)
                                         .attr("value", buttonRanges[b])
                                         .attr("data-field", field)
-                        var label = d3.select(`div#${name}${b}Div`)
-                                    .append("label")
-                                    .attr("for", b)
-                                    .text(buttonRanges[b])
-                                    .style("cursor", "pointer")
-                                    .style("background", "lightgray")
-                                    .style("border", "1px solid black")
-                                    .style("border-radius", "5px")
-                                    .style("display", "inline-block")
-                                    .style("width", "150px")
-                                    .style("text-align", "center")
+                        
+                        if (b === "all") {
+                            var label = d3.select(`div#${name}${b}Div`)
+                                        .append("label")
+                                        .attr("for", b)
+                                        .text(buttonRanges[b])
+                                        .style("cursor", "pointer")
+                                        // .style("background", "lightgray")
+                                        // .style("border", "1px solid black")
+                                        // .style("border-radius", "5px")
+                                        // .style("display", "block")
+                                        .style("width", "50px")
+                                        .style("text-align", "center")
+                        } else {
+                            var label = d3.select(`div#${name}${b}Div`)
+                                        .append("label")
+                                        .attr("for", b)
+                                        .attr("id", b)
+                                        .style("margin", "auto")
+                                        .append("svg")
+                                        .attr("width", "25px")
+                                        .attr("height", "25px")
+                                        .append("circle")
+                                        .attr("cx", "12px")
+                                        .attr("cy", "12px")
+                                        .attr("r", buttonRanges[b].substring(buttonRanges[b].indexOf('-') + 1, buttonRanges[b].indexOf('-') + 2)*2)
+                                        .attr("fill", "navy")
+                                        .style("cursor", "pointer")
+                            d3.select(`label#${b}`).append("text").text(buttonRanges[b].split('000').join('k')).style("font-size", "10px")
+                        }
                     });
                     d3.selectAll(`input[name='${name}Range']`).on("change", function(){
                         filter(d3.select(this).attr("data-field"), d3.select(this).node().value);
@@ -543,7 +562,7 @@
                 createSliders("price", "Sale Amount", saleAmountExtent)
                 // let priceRanges = {"all": "All", "first": "0-100,000", "second": "100,001-200,000", "third": "200,001-300,000", "fourth": "300,001-400,000", "fifth": "500,001-1,000,000", "sixth": "1,000,001-2,000,000"}
                 // createButtons("price", "Sale Amount", priceRanges);
-                let sizeRanges = {"all": "All", "first": "500-2000", "second": "2001-4000", "third": "4001-6000"}
+                let sizeRanges = {"all": "All", "first": "500-2000", "second": "2000-4000", "third": "4000-6000"}
                 createButtons("size", "Finished Size (Sq.Ft.)", sizeRanges);
 
                 createDropdown('Neighborhood');
