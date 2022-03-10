@@ -20,7 +20,7 @@
             }
 
             #header h1{
-                margin-top: 8px;
+                margin-top: 10px;
                 margin-bottom: 4px;
                 font-size: 42px;
             }
@@ -62,7 +62,6 @@
                 border: 1px solid lightgrey;
                 border-top-right-radius: 8px;
                 border-bottom-right-radius: 8px;
-                /* margin-left: 12px; */
                 background-color: white;
             }
 
@@ -177,8 +176,6 @@
             </div>
             <div id="click-info-container">
                 <div id="click-info" style="display: none;">
-                    <!-- <svg id="graph" height=400 width=700>
-                    </svg> -->
                     <svg id="lot-diagram" width="200" height="200"></svg>
                 </div>
 
@@ -254,9 +251,6 @@
 
                 let mouseoverDiv = map.append("div").attr("id", "mouseover")
 
-                // var label = d3.select("#mouseover").append("text").attr("id","label").style("transform", "translate(100, 100)");
-                // var label2 = d3.select("#mouseover").append("text").attr("id","label2").style("transform", "translate(100, 100)");
-
                 function getNumericPixelVal(str){
                     return Number(String(str).substr(0, String(str).length-2))
                 }
@@ -281,7 +275,6 @@
 
                 let finishedText = sizesvg.append('text')
                     .attr("id", "finishedText")
-                    // .attr("width", 200)
                     .style("color", "black")
                     .attr('text-anchor', "middle")
                     .attr("x", 100)
@@ -311,6 +304,8 @@
 
                 }
 
+                let clickedCircle = null;
+
                 function plotCircles(filteredData){
 
                     let circles = map.selectAll("circle")
@@ -320,6 +315,8 @@
                         .attr("r", 3)
                         .attr("fill", "navy")
                         .attr("opacity", .5)
+                        .attr("stroke", "white")
+                        .attr("stroke-width", "1px")
                         .attr("class", "home")
                         .style("cursor", "pointer")
                         .on("mouseover", function(e, d){
@@ -328,8 +325,7 @@
                                 .transition().duration(250)
                                 .attr("r", 8)
                                 .attr("opacity", 0.8)
-                            // d3.select("#label").text(d['Street Address']);
-                            // d3.select("#label2").text(d['Sale Amount']);
+
                             let tooltipWidth = 250;
                             let tooltipHeight = 60;
                             let tooltip = mapsvg.append("g")
@@ -363,13 +359,7 @@
                                 .attr("y", 390 + 65);
                             let xPos = (d['coords'][0]+tooltipWidth+50);
                             let yPos = (d['coords'][1]+tooltipHeight+5);
-                            // yPos = String(Math.min((getNumericPixelVal(mapHeight)-tooltipHeight-5), getNumericPixelVal(yPos))) + "px"
-                            // halfTooltipWidth = tooltipWidth/2
-                            // if (getNumericPixelVal(xPos)+halfTooltipWidth >= getNumericPixelVal(mapWidth)){
-                            //     xPos = String(getNumericPixelVal(mapWidth) - halfTooltipWidth + 27) + "px"
-                            // } else if (getNumericPixelVal(xPos)-halfTooltipWidth <= 0){
-                            //     xPos = String(halfTooltipWidth + 3) + "px"
-                            // }
+
                             tooltip.style("transform",`translate(${yPos}, ${xPos}) rotate(90deg)`);
                             d3.selectAll(".tooltip")
                                 .transition().duration(500)
@@ -380,6 +370,14 @@
                         .on("click", function(e,d){
                             d3.select("#click-info").style("display", "block")
                             d3.select("#click-for-more").style("display", "none")
+
+                            if (clickedCircle){
+                                clickedCircle.transition().duration(250).attr("fill", "navy").attr("stroke", "white").attr("opacity", 0.5)
+                            }
+                            clickedCircle = d3.select(this)
+
+                            clickedCircle.raise().transition().duration(250).attr("fill", "red").attr("opacity", 1).attr("stroke", "grey").attr("stroke-width", "1px")
+
 
                             console.log(d)
                             d3.selectAll(".click-content").remove()
@@ -396,7 +394,7 @@
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Listing Price").append("p").html(change).style("font-weight", "normal")
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Neighborhood").append("p").text(d['Neighborhood']).style("font-weight", "normal")
                             d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Year Built").append("p").text(d['Year Built']).style("font-weight", "normal")
-                            d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Beds/Baths").append("p").text(d['Bedrooms'] + ', ' + d['Bathroom']).style("font-weight", "normal")
+                            d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Beds/Baths").append("p").text(checkNull(d['Bedrooms']) + ', ' + checkNull(d['Bathroom'])).style("font-weight", "normal")
                         
                             if (d['Last Sold Price'] != ""){
                                 d3.select("#click-info").append("div").attr("class", "click-content").append("h4").text("Last Sold").append("p").text("$" + Number(d['Last Sold Price']).toLocaleString() + " on " + d['Last Sold Date']).style("font-weight", "normal")
@@ -415,6 +413,14 @@
                             
                             d3.selectAll(".tooltip").remove()
                         })
+            }
+
+            function checkNull(str){
+                if (str==""){
+                    str = "N/A"
+                }
+
+                return str
             }
 
                 initZoom();
@@ -480,7 +486,6 @@
                                         .attr("data-field", field)
                                         .style("border", "1px solid black")
                                         .style("border-radius", "5px")
-                                        // .style("width", "35%")
                                         .style("margin-top", "6px")
                                         .style("margin-bottom", "12px")
                                         .on("change", function(e, d){
@@ -530,10 +535,6 @@
                                         .attr("class", "buttonLabel selectedLabel")
                                         .text(buttonRanges[b])
                                         .style("cursor", "pointer")
-                                        // .style("background", "lightgray")
-                                        // .style("border", "1px solid black")
-                                        // .style("border-radius", "5px")
-                                        // .style("display", "block")
                                         .style("width", "50px")
                                         .style("text-align", "center")
                         } else {
